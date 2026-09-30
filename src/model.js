@@ -1,0 +1,9 @@
+export function localDate(date = new Date()) { const d = new Date(date); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+export function recentDates(count=7) { return Array.from({length:count},(_,i)=>{const d=new Date();d.setDate(d.getDate()-count+1+i);return localDate(d)}); }
+export const defaultGoals = {sono:8,alimentacao:3,atividade:30};
+export function seedData() {return {goals:defaultGoals,records:recentDates().slice(0,-1).map((date,i)=>({date,sono:[7,8,8.5,6.5,8,8][i],alimentacao:[3,2,3,3,2,3][i],atividade:[30,45,0,30,20,40][i],quality:'Boa',notes:'',targets:{...defaultGoals}})),sharing:{professional:'',sono:false,alimentacao:false,atividade:false,active:false}};}
+export function points(record) { if(!record)return 0; const g=record.targets||defaultGoals;return 2+(record.sono>=g.sono?10:0)+(record.alimentacao>=g.alimentacao?10:0)+(record.atividade>=g.atividade?15:0); }
+export function totalPoints(records) {return records.reduce((sum,r)=>sum+points(r),0)+Math.floor(new Set(records.map(r=>r.date)).size/7)*10;}
+export function percentage(records,id){return records.length?Math.round(100*records.filter(r=>r[id]>=(r.targets||defaultGoals)[id]).length/records.length):0;}
+export function saveRecord(records,record){return [...records.filter(r=>r.date!==record.date),record].sort((a,b)=>a.date.localeCompare(b.date));}
+export function validState(value){return value && value.goals && Object.keys(defaultGoals).every(k=>Number.isFinite(value.goals[k])&&value.goals[k]>0) && Array.isArray(value.records) && value.records.every(r=>r && /^\d{4}-\d{2}-\d{2}$/.test(r.date) && Object.keys(defaultGoals).every(k=>Number.isFinite(r[k])&&r[k]>=0) && (!r.targets || Object.keys(defaultGoals).every(k=>Number.isFinite(r.targets[k])&&r.targets[k]>0))) && value.sharing && typeof value.sharing.professional==='string';}
